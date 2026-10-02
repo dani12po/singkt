@@ -55,19 +55,22 @@ function detectedLocale(req: NextRequest): string {
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  // Exact SEO files must never fall through to the shortlink rewrite,
+  // even with a trailing slash ("/sitemap.xml/").
+  const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 
   // Never touch APIs, assets, SEO files, feeds, or admin.
   if (
-    pathname.startsWith("/api/") ||
-    pathname.startsWith("/_next/") ||
-    pathname.startsWith("/admin") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/robots.txt" ||
-    pathname === "/ads.txt" ||
-    pathname === "/rss" ||
-    pathname === "/sitemap.xml" ||
-    pathname.startsWith("/sitemap-") ||
-    pathname.startsWith("/og-image")
+    p.startsWith("/api/") ||
+    p.startsWith("/_next/") ||
+    p.startsWith("/admin") ||
+    p === "/favicon.ico" ||
+    p === "/robots.txt" ||
+    p === "/ads.txt" ||
+    p === "/rss" ||
+    p === "/sitemap.xml" ||
+    p.startsWith("/sitemap-") ||
+    p.startsWith("/og-image")
   ) {
     return NextResponse.next();
   }

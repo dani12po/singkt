@@ -1,6 +1,6 @@
 /**
  * ads.txt — AdSense verification + authorized sellers list.
- * Google checks https://singkt.my.id/ads.txt for this exact line.
+  * Google checks https://www.singkt.my.id/ads.txt for this exact line.
  */
 export async function GET() {
   const lines = [

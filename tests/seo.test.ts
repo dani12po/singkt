@@ -145,6 +145,16 @@ describe("sitemap + robots", () => {
     }
   });
 
+  it("sitemap builders honor an explicit base URL", () => {
+    const idx = sitemapIndexXml("https://example.com");
+    expect(idx).toContain("https://example.com/sitemap-root.xml");
+    expect(idx).not.toContain("localhost");
+    expect(rootSitemapXml("https://example.com")).toContain("https://example.com/");
+    expect(localeSitemapXml("en", "https://example.com")).toContain(
+      "https://example.com/en/sitemap",
+    );
+  });
+
   it("robots allows public content and blocks admin/api", () => {
     const r = robotsRules();
     const rule = r.rules as unknown as { disallow: string | string[] }[];
