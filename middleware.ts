@@ -62,6 +62,7 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/admin") ||
     pathname === "/favicon.ico" ||
     pathname === "/robots.txt" ||
+    pathname === "/ads.txt" ||
     pathname === "/rss" ||
     pathname === "/sitemap.xml" ||
     pathname.startsWith("/sitemap-") ||
