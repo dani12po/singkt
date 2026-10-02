@@ -97,7 +97,32 @@ export function sitemapIndexXml(base: string = siteBase()): string {
   const items = files
     .map((f) => `  <sitemap><loc>${base}/${f}</loc></sitemap>`)
     .join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${items}\n</sitemapindex>`;
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${items}\n</sitemapindex>`;
+}
+
+/**
+ * Flat sitemap served at /sitemap.xml: every public page in one file
+ * (root pages + all locales with tools, help pages, blog posts).
+ * Admin, API, preview/stats and other internal routes are never included.
+ */
+export function allPagesSitemapXml(base: string = siteBase()): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const locs = [
+    `${base}/`,
+    ...ROOT_STATIC_ROUTES.map((r) => `${base}${r}`),
+    ...LANDING_PAGES.map((p) => `${base}${p.route}`),
+    ...LOCALE_CODES.flatMap((locale) => [
+      `${base}/${locale}`,
+      ...TOOLS.map((t) => `${base}/${locale}${t.route}`),
+      `${base}/${locale}/faq`,
+      `${base}/${locale}/report-abuse`,
+      `${base}/${locale}/search`,
+      `${base}/${locale}/sitemap`,
+      `${base}/${locale}/blog`,
+      ...blogSlugsFor(locale).map((s) => `${base}/${locale}/blog/${s}`),
+    ]),
+  ];
+  return wrap(locs.filter((loc, i) => locs.indexOf(loc) === i).map((loc) => urlEntry(loc, today)));
 }
 
 export function xmlResponse(xml: string): Response {

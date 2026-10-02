@@ -12,7 +12,7 @@ import {
   webPage,
   website,
 } from "../lib/seo/structured-data";
-import { localeSitemapXml, rootSitemapXml, sitemapIndexXml } from "../lib/seo/sitemap";
+import { allPagesSitemapXml, localeSitemapXml, rootSitemapXml, sitemapIndexXml } from "../lib/seo/sitemap";
 import { robotsRules } from "../lib/seo/robots";
 import { TOOLS } from "../lib/tools";
 import { LANDING_PAGES } from "../lib/seo/landing";
@@ -153,6 +153,25 @@ describe("sitemap + robots", () => {
     expect(localeSitemapXml("en", "https://example.com")).toContain(
       "https://example.com/en/sitemap",
     );
+  });
+
+  it("flat sitemap lists every public page except admin", () => {
+    const flat = allPagesSitemapXml("https://example.com");
+    expect(flat).toContain("<urlset");
+    expect(flat).not.toContain("<sitemapindex");
+    for (const u of [
+      "https://example.com/",
+      "https://example.com/about",
+      "https://example.com/facebook-video-downloader",
+      "https://example.com/id",
+      "https://example.com/en/tiktok-downloader",
+      "https://example.com/id/faq",
+      "https://example.com/en/blog/cara-download-video-facebook",
+    ]) {
+      expect(flat).toContain(u);
+    }
+    expect(flat).not.toContain("/admin");
+    expect(flat).not.toContain("/api/");
   });
 
   it("robots allows public content and blocks admin/api", () => {
