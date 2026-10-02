@@ -17,8 +17,9 @@ function urlEntry(loc: string, lastmod?: string): string {
   return `  <url><loc>${esc(loc)}</loc>${lm}</url>`;
 }
 
-function wrap(urls: string[]): string {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+function wrap(urls: string[], xhtml = false): string {
+  const ns = xhtml ? ' xmlns:xhtml="http://www.w3.org/1999/xhtml"' : "";
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${ns}>\n${urls.join("\n")}\n</urlset>`;
 }
 
 /**
@@ -60,8 +61,34 @@ export function siteBase(): string {
   return SITE_URL;
 }
 
+/**
+ * Canonical base for served XML: enforces the www host so crawlers never
+ * see apex/localhost variants of the same page (duplicate-content guard).
+ */
+export function canonicalBase(base: string = siteBase()): string {
+  const m = base.match(/^(https?:\/\/)([^/]+)(\/.*)?$/);
+  if (m && m[2].toLowerCase() === "singkt.my.id") return `https://www.singkt.my.id${m[3] ?? ""}`;
+  return base;
+}
+
+function hreflangTag(code: string): string {
+  return code === "zh-cn" ? "zh-CN" : code === "zh-tw" ? "zh-TW" : code;
+}
+
+/** Homepage-cluster entry with full hreflang alternates (all locales + x-default → root). */
+function homepageEntry(base: string, path: string, today: string): string {
+  const alts = [
+    ...LOCALE_CODES.map(
+      (code) =>
+        `    <xhtml:link rel="alternate" hreflang="${hreflangTag(code)}" href="${esc(`${base}/${code}`)}"/>`,
+    ),
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(`${base}/`)}"/>`,
+  ].join("\n");
+  return `  <url>\n    <loc>${esc(`${base}${path}`)}</loc>\n${alts}\n    <lastmod>${today}</lastmod>\n  </url>`;
+}
+
 /** Root sitemap: single-language legacy pages (Indonesian). */
-export function rootSitemapXml(base: string = siteBase()): string {
+export function rootSitemapXml(base: string = canonicalBase()): string {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     urlEntry(`${base}/`, today),
@@ -76,7 +103,7 @@ export function blogSlugsFor(locale: string): string[] {
 }
 
 /** Per-locale sitemap: every localized page + its blog posts. */
-export function localeSitemapXml(locale: string, base: string = siteBase()): string {
+export function localeSitemapXml(locale: string, base: string = canonicalBase()): string {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     urlEntry(`${base}/${locale}`, today),
@@ -92,7 +119,7 @@ export function localeSitemapXml(locale: string, base: string = siteBase()): str
 }
 
 /** Sitemap index: root + one file per locale. */
-export function sitemapIndexXml(base: string = siteBase()): string {
+export function sitemapIndexXml(base: string = canonicalBase()): string {
   const files = ["sitemap-root.xml", ...LOCALE_CODES.map((c) => `sitemap-${c}.xml`)];
   const items = files
     .map((f) => `  <sitemap><loc>${base}/${f}</loc></sitemap>`)
@@ -106,13 +133,12 @@ export function sitemapIndexXml(base: string = siteBase()): string {
  * Admin, API, preview/stats and other internal routes are never included.
  */
 export function allPagesSitemapXml(base: string = siteBase()): string {
+  base = canonicalBase(base);
   const today = new Date().toISOString().slice(0, 10);
   const locs = [
-    `${base}/`,
     ...ROOT_STATIC_ROUTES.map((r) => `${base}${r}`),
     ...LANDING_PAGES.map((p) => `${base}${p.route}`),
     ...LOCALE_CODES.flatMap((locale) => [
-      `${base}/${locale}`,
       ...TOOLS.map((t) => `${base}/${locale}${t.route}`),
       `${base}/${locale}/faq`,
       `${base}/${locale}/report-abuse`,
@@ -122,7 +148,13 @@ export function allPagesSitemapXml(base: string = siteBase()): string {
       ...blogSlugsFor(locale).map((s) => `${base}/${locale}/blog/${s}`),
     ]),
   ];
-  return wrap(locs.filter((loc, i) => locs.indexOf(loc) === i).map((loc) => urlEntry(loc, today)));
+  const homeEntries = ["", ...LOCALE_CODES.map((c) => `/${c}`)].map((p) =>
+    homepageEntry(base, p, today),
+  );
+  const rest = locs
+    .filter((loc, i) => locs.indexOf(loc) === i)
+    .map((loc) => urlEntry(loc, today));
+  return wrap(homeEntries.concat(rest), true);
 }
 
 export function xmlResponse(xml: string): Response {

@@ -174,6 +174,19 @@ describe("sitemap + robots", () => {
     expect(flat).not.toContain("/api/");
   });
 
+  it("flat sitemap enforces www + hreflang homepage cluster", () => {
+    const flat = allPagesSitemapXml("https://example.com");
+    expect(flat).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+    expect(flat).toContain('hreflang="id" href="https://example.com/id"');
+    expect(flat).toContain('hreflang="en" href="https://example.com/en"');
+    expect(flat).toContain('hreflang="x-default" href="https://example.com/"');
+    // Apex host is rewritten to www canonical.
+    const apex = allPagesSitemapXml("https://singkt.my.id");
+    expect(apex).toContain("https://www.singkt.my.id/id");
+    expect(apex).toContain("https://www.singkt.my.id/id/blog/cara-download-tiktok-tanpa-watermark");
+    expect(apex).not.toContain("https://singkt.my.id/");
+  });
+
   it("robots allows public content and blocks admin/api", () => {
     const r = robotsRules();
     const rule = r.rules as unknown as { disallow: string | string[] }[];
