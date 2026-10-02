@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE: For PostgreSQL at scale, change provider to "postgresql",
+// run `prisma migrate dev`, and set DATABASE_URL to your Postgres URL.
+// Schema fields are compatible with both.
+
+model ShortLink {
+  id            Int       @id @default(autoincrement())
+  shortCode     String    @unique
+  destination   String
+  customAlias   String?   @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+  status        String    @default("active") // active | disabled | expired
+  clickCount    Int       @default(0)
+  lastClickedAt DateTime?
+  isFlagged     Boolean   @default(false)
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+model ClickEvent {
+  id        Int      @id @default(autoincrement())
+  shortCode String
+  createdAt DateTime @default(now())
+  device    String?
+  browser   String?
+  referrer  String?
+  country   String?
+
+  @@index([shortCode, createdAt])
+}
+
+model AbuseReport {
+  id        Int      @id @default(autoincrement())
+  shortCode String
+  reason    String
+  detail    String?
+  createdAt DateTime @default(now())
+  status    String   @default("open") // open | reviewed | actioned | dismissed
+
+  @@index([shortCode])
+  @@index([status])
+}
+
+model BlockedDomain {
+  id        Int      @id @default(autoincrement())
+  domain    String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model ExtractionLog {
+  id              Int      @id @default(autoincrement())
+  platform        String
+  originalUrl     String
+  resolvedUrl     String
+  status          String   @default("ok")
+  quality         String?
+  adCompleted     Boolean  @default(false)
+  downloadStarted Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([platform, createdAt])
+  @@index([status])
+}

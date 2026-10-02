@@ -1,0 +1,14 @@
+node_modules/
+.next/
+*.db
+*.db-journal
+.env
+!.env.example
+# Generated security reports stay local (may contain target IPs).
+hacking/reports/report.json
+hacking/reports/report.html
+# Internal security testing suite — not pushed.
+hacking/
+# Local temp/junk.
+*.log
+tsconfig.tsbuildinfo
