@@ -28,29 +28,79 @@ function timeoutMs(): number {
   return Number.isFinite(v) && v > 0 ? Math.floor(v) : 45000;
 }
 
-function binary(): string {
-  return process.env.YTDLP_PATH || "yt-dlp";
+function ytDlpCandidates(): string[][] {
+  const out: string[][] = [];
+  const env = (process.env.YTDLP_PATH || "").trim();
+  if (env) out.push(splitExtraArgs(env));
+  out.push(["yt-dlp"]);
+  // pip installs the `yt_dlp` python module even when the `yt-dlp` shim
+  // is not on PATH (common on Windows / minimal VPS images).
+  out.push(["python3", "-m", "yt_dlp"]);
+  out.push(["python", "-m", "yt_dlp"]);
+  if (process.platform === "win32") out.push(["py", "-m", "yt_dlp"]);
+  const seen = new Set<string>();
+  return out.filter((c) => {
+    const k = JSON.stringify(c);
+    if (seen.has(k) || c.length === 0 || !c[0]) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
-/** Split YTDLP_EXTRA_ARGS respecting double quotes. Pure — unit tested. */
-export function splitExtraArgs(raw: string | undefined): string[] {
-  if (!raw) return [];
-  const out: string[] = [];
-  const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(raw)) !== null) {
-    out.push(m[1] ?? m[2] ?? m[3]);
+let cachedYtDlpCmd: string[] | null = null;
+
+function isMissingBinaryError(err: unknown, stderr: string): boolean {
+  const code = (err as { code?: unknown }).code;
+  if (code === "ENOENT") return true;
+  const msg = String((err as { message?: unknown }).message ?? "");
+  return /command not found|not recognized|ENOENT/i.test(stderr + " " + msg);
+}
+
+export function __resetYtDlpCacheForTests(): void {
+  cachedYtDlpCmd = null;
+}
+
+/** Version probe used by /api/health — tries the same candidates. */
+export async function getYtDlpVersion(ms = 15000): Promise<{ ok: boolean; version?: string }> {
+  for (const cmd of ytDlpCandidates()) {
+    const probed = await new Promise<{ ok: boolean; version?: string; missing?: boolean }>((resolve) => {
+      const t = setTimeout(() => resolve({ ok: false }), ms);
+      try {
+        const p = execFile(cmd[0], [...cmd.slice(1), "--version"], { windowsHide: true }, (err, stdout) => {
+          clearTimeout(t);
+          if (err) {
+            resolve({ ok: false, missing: isMissingBinaryError(err, "") });
+            return;
+          }
+          const first = String(stdout).split("\n")[0].trim().slice(0, 64);
+          resolve({ ok: true, version: first || undefined });
+        });
+        p.on("error", (e) => {
+          clearTimeout(t);
+          resolve({ ok: false, missing: isMissingBinaryError(e, "") });
+        });
+      } catch {
+        clearTimeout(t);
+        resolve({ ok: false });
+      }
+    });
+    if (probed.ok) {
+      cachedYtDlpCmd = cmd;
+      return { ok: true, version: probed.version };
+    }
+    if (!probed.missing) return { ok: false };
+    // missing binary → try next candidate
   }
-  return out;
+  return { ok: false };
 }
 
 type ExecResult = { stdout: string; stderr: string };
 
-function runYtDlp(args: string[]): Promise<ExecResult> {
+function execOnce(cmd: string[], args: string[]): Promise<ExecResult> {
   return new Promise((resolve, reject) => {
     execFile(
-      binary(),
-      args,
+      cmd[0],
+      [...cmd.slice(1), ...args],
       { timeout: timeoutMs(), maxBuffer: 32 * 1024 * 1024, windowsHide: true },
       (err, stdout, stderr) => {
         if (err) {
@@ -63,6 +113,50 @@ function runYtDlp(args: string[]): Promise<ExecResult> {
       }
     );
   });
+}
+
+function runYtDlp(args: string[]): Promise<ExecResult> {
+  return (async () => {
+    const cmds = cachedYtDlpCmd ? [cachedYtDlpCmd, ...ytDlpCandidates()] : ytDlpCandidates();
+    const seen = new Set<string>();
+    let lastMissing: unknown = null;
+    for (const cmd of cmds) {
+      const k = JSON.stringify(cmd);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      try {
+        const res = await execOnce(cmd, args);
+        cachedYtDlpCmd = cmd;
+        return res;
+      } catch (e) {
+        const stderr = String((e as { stderr?: unknown }).stderr ?? (e as { message?: unknown }).message ?? "");
+        if (isMissingBinaryError(e, stderr)) {
+          lastMissing = e;
+          continue;
+        }
+        throw e;
+      }
+    }
+    const err = new Error(`spawn yt-dlp ENOENT (tried: ${cmds.map((c) => c.join(" ")).join(" | ")})`) as Error & {
+      code?: string;
+      stderr?: string;
+    };
+    err.code = "ENOENT";
+    err.stderr = String((lastMissing as { stderr?: unknown })?.stderr ?? "");
+    throw err;
+  })();
+}
+
+/** Split YTDLP_EXTRA_ARGS respecting double quotes. Pure — unit tested. */
+export function splitExtraArgs(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const out: string[] = [];
+  const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(raw)) !== null) {
+    out.push(m[1] ?? m[2] ?? m[3]);
+  }
+  return out;
 }
 
 /** Map yt-dlp stderr to a structured error code. Pure — unit tested. */
@@ -587,10 +681,10 @@ export async function extractMediaInfo(
       pageUrl,
     ]);
   } catch (e) {
-    const err = e as { killed?: boolean; stderr?: string; message?: string };
+    const err = e as { killed?: boolean; code?: string; stderr?: string; message?: string };
     const stderr = String(err.stderr ?? err.message ?? "");
     if (err.killed) return { ok: false, code: "EXTRACTION_FAILED", stderr: "TIMEOUT" };
-    if (/command not found|not recognized|ENOENT/i.test(stderr + String(err.message ?? ""))) {
+    if (err.code === "ENOENT" || /command not found|not recognized|ENOENT/i.test(stderr + String(err.message ?? ""))) {
       return { ok: false, code: "EXTRACTION_FAILED", stderr: "YTDLP_MISSING" };
     }
     return { ok: false, code: mapYtDlpError(stderr), stderr };
@@ -803,13 +897,14 @@ export async function extractWithYtDlp(
   const extracted = await extractMediaInfo(check.url);
   if (!extracted.ok) {
     if (extracted.stderr === "YTDLP_MISSING") {
-      dlog("extract-fail", "yt-dlp binary not available");
+      dlog("extract-fail", "yt-dlp binary not available (tried yt-dlp + python -m yt_dlp)");
       if (debug) debug.error = "yt-dlp missing";
       return {
         success: false,
         platform,
         code: "EXTRACTION_FAILED",
-        error: "Video extractor is not installed on the server (yt-dlp missing).",
+        error:
+          "Video extractor is not installed on the server (yt-dlp missing). Admin: install with `pip install yt-dlp`, pastikan YTDLP_PATH benar, lalu cek /api/health.",
       };
     }
     if (extracted.stderr === "TIMEOUT") {

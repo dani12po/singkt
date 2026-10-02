@@ -318,6 +318,27 @@ details.advanced summary { cursor: pointer; }
 .step { border-radius: 14px; padding: 22px; }
 .card { border-radius: 16px; }
 
+/* Paste/clear button inside link inputs (replaces #paste-clear-btn snippet) */
+.paste-wrap { position: relative; }
+.paste-wrap .paste-input { padding-right: 48px; }
+.paste-clear-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  border-radius: 8px;
+  line-height: 0;
+  transition: color 0.15s ease;
+}
+.paste-clear-btn:hover { color: #4b5563; }
+.paste-clear-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.paste-clear-btn .paste-icon { width: 20px; height: 20px; display: block; }
+
 /* Rewarded ad modal */
 .modal-backdrop {
   position: fixed;

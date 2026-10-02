@@ -7,6 +7,7 @@ FROM node:20-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip ffmpeg ca-certificates \
   && pip3 install --no-cache-dir --break-system-packages yt-dlp \
+  && yt-dlp --version && python3 -m yt_dlp --version && ffmpeg -version | head -n 1 \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

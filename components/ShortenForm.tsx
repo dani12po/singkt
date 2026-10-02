@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PasteClearInput from "@/components/paste-clear-input";
 import type { Dict } from "@/lib/i18n/dict";
 
 type ShortenResult = {
@@ -154,17 +155,16 @@ export default function ShortenForm({ dict }: { dict: Dict }) {
       <label htmlFor="url-input" className="muted" style={{ fontSize: 14 }}>
         {s.heroDesc}
       </label>
-      <input
+      <PasteClearInput
         id="url-input"
-        className="input"
-        style={{ marginTop: 8 }}
+        wrapperStyle={{ marginTop: 8 }}
         type="text"
         inputMode="url"
         autoComplete="off"
         spellCheck={false}
         placeholder={s.placeholder}
         value={url}
-        onChange={(e) => setUrl(e.target.value)}
+        onChange={setUrl}
       />
       <details className="advanced">
         <summary>{s.advanced}</summary>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import PasteClearInput from "@/components/paste-clear-input";
 import { detectPlatform, PLATFORM_META } from "@/lib/downloader/detect";
 import type { AudioVariant, DownloadVariant, ImageVariant } from "@/lib/downloader/pipeline";
 import type { Dict } from "@/lib/i18n/dict";
@@ -606,17 +607,15 @@ export default function DownloaderForm(props: DownloaderFormProps) {
           </span>
         ) : null}
       </label>
-      <input
+      <PasteClearInput
         id={`dl-${props.endpoint}`}
-        className="input"
-        style={{ marginTop: 8 }}
-        type="text"
+        wrapperStyle={{ marginTop: 8 }}
         inputMode="url"
         autoComplete="off"
         spellCheck={false}
         placeholder={props.placeholder}
         value={url}
-        onChange={(e) => setUrl(e.target.value)}
+        onChange={setUrl}
         disabled={busy}
       />
       <div className="row">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PasteClearInput from "@/components/paste-clear-input";
 
 const REASONS = ["Phishing", "Malware", "Spam", "Scam", "Other"] as const;
 
@@ -44,12 +45,11 @@ export default function ReportAbuseClient() {
       <p className="muted">Laporkan shortlink yang mengarah ke phishing, malware, spam, atau scam.</p>
       <form className="card" onSubmit={submit}>
         <label htmlFor="rc">Shortlink:</label>
-        <input
+        <PasteClearInput
           id="rc"
-          className="input"
           placeholder="https://domain-anda/aX72kP atau aX72kP"
           value={shortCode}
-          onChange={(e) => setShortCode(e.target.value)}
+          onChange={setShortCode}
           required
         />
         <div style={{ marginTop: 12 }}>

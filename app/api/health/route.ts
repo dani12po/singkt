@@ -1,35 +1,7 @@
 import { NextResponse } from "next/server";
-import { execFile } from "node:child_process";
 import { prisma } from "@/lib/db";
 import { muxAvailable } from "@/lib/downloader/mux";
-
-function checkBin(
-  bin: string,
-  args: string[],
-  ms: number
-): Promise<{ ok: boolean; version?: string }> {
-  return new Promise((resolve) => {
-    const t = setTimeout(() => resolve({ ok: false }), ms);
-    try {
-      const p = execFile(bin, args, { windowsHide: true }, (err, stdout) => {
-        clearTimeout(t);
-        if (err) {
-          resolve({ ok: false });
-          return;
-        }
-        const first = String(stdout).split("\n")[0].trim().slice(0, 64);
-        resolve({ ok: true, version: first || undefined });
-      });
-      p.on("error", () => {
-        clearTimeout(t);
-        resolve({ ok: false });
-      });
-    } catch {
-      clearTimeout(t);
-      resolve({ ok: false });
-    }
-  });
-}
+import { getYtDlpVersion } from "@/lib/downloader/extractors/ytdlp";
 
 /**
  * Deployment health. No paths or secrets are exposed — only
@@ -37,7 +9,7 @@ function checkBin(
  */
 export async function GET() {
   const [ytdlp, ffmpeg, db] = await Promise.all([
-    checkBin(process.env.YTDLP_PATH || "yt-dlp", ["--version"], 15000),
+    getYtDlpVersion(15000),
     muxAvailable().then((ok) => ({ ok })),
     prisma
       .$queryRaw`SELECT 1`

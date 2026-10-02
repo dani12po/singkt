@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PasteClearInput from "@/components/paste-clear-input";
 import type { Dict } from "@/lib/i18n/dict";
 
 const REASONS = ["Phishing", "Malware", "Spam", "Scam", "Other"] as const;
@@ -46,12 +47,11 @@ export default function ReportAbuseForm({ dict }: { dict: Dict }) {
       <p className="muted">{d.sub}</p>
       <form className="card" onSubmit={submit}>
         <label htmlFor="rc">{d.link}</label>
-        <input
+        <PasteClearInput
           id="rc"
-          className="input"
           placeholder="aX72kP"
           value={shortCode}
-          onChange={(e) => setShortCode(e.target.value)}
+          onChange={setShortCode}
           required
         />
         <div style={{ marginTop: 12 }}>
