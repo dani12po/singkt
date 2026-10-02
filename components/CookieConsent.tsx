@@ -2,28 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n/dict";
-
-const KEY = "singkat_cookie_consent";
-
-export function getConsent(): "accepted" | "declined" | null {
-  try {
-    const v = localStorage.getItem(KEY);
-    if (v === "accepted" || v === "declined") return v;
-  } catch {
-    // storage unavailable
-  }
-  return null;
-}
-
-function persist(value: "accepted" | "declined"): void {
-  try {
-    localStorage.setItem(KEY, value);
-  } catch {
-    // ignore
-  }
-  document.cookie = `${KEY}=${value}; path=/; max-age=31536000; SameSite=Lax`;
-  window.dispatchEvent(new CustomEvent("singkat-consent", { detail: value }));
-}
+import { getConsent, persistConsent } from "@/lib/consent";
 
 export default function CookieConsent({ dict }: { dict: Dict }) {
   const [visible, setVisible] = useState(false);
@@ -46,7 +25,7 @@ export default function CookieConsent({ dict }: { dict: Dict }) {
             type="button"
             className="btn accent"
             onClick={() => {
-              persist("accepted");
+              persistConsent("accepted");
               setVisible(false);
             }}
           >
@@ -56,7 +35,7 @@ export default function CookieConsent({ dict }: { dict: Dict }) {
             type="button"
             className="btn secondary"
             onClick={() => {
-              persist("declined");
+              persistConsent("declined");
               setVisible(false);
             }}
           >

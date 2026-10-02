@@ -2,6 +2,14 @@
   "name": "singkat",
   "version": "1.0.0",
   "private": true,
+  "browserslist": [
+    "chrome >= 90",
+    "edge >= 90",
+    "firefox >= 90",
+    "safari >= 15.4",
+    "opera >= 76",
+    "not dead"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

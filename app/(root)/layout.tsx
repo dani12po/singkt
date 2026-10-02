@@ -1,8 +1,10 @@
 import { TOOLS } from "@/lib/tools";
+import dynamic from "next/dynamic";
 import { BrandIcon } from "@/components/brand-icons";
 import { JsonLd } from "@/components/JsonLd";
-import CookieConsent from "@/components/CookieConsent";
 import ConsentAnalytics from "@/components/ConsentAnalytics";
+// Banner is below-fold UI: split into its own chunk, loaded after hydration.
+const CookieConsent = dynamic(() => import("@/components/CookieConsent"), { ssr: false });
 import AdSense from "@/components/AdSense";
 import { organization, website } from "@/lib/seo/structured-data";
 import { getDict } from "@/lib/i18n/get";

@@ -36,6 +36,11 @@ function csp() {
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    // Rewrite barrel imports (e.g. simple-icons ±3000 icons) into
+    // per-module imports so unused icons tree-shake out of client chunks.
+    optimizePackageImports: ["simple-icons"],
+  },
   async headers() {
     return [
       {

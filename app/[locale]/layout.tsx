@@ -1,9 +1,11 @@
 import { TOOLS } from "@/lib/tools";
+import dynamic from "next/dynamic";
 import { BrandIcon } from "@/components/brand-icons";
 import { JsonLd } from "@/components/JsonLd";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
-import CookieConsent from "@/components/CookieConsent";
 import ConsentAnalytics from "@/components/ConsentAnalytics";
+// Banner is below-fold UI: split into its own chunk, loaded after hydration.
+const CookieConsent = dynamic(() => import("@/components/CookieConsent"), { ssr: false });
 import AdSense from "@/components/AdSense";
 import { organization, website } from "@/lib/seo/structured-data";
 import { getDict } from "@/lib/i18n/get";
@@ -47,7 +49,7 @@ export default function LocaleLayout({
                 </div>
               </div>
               <a href={href("/faq")}>{d.nav.faq}</a>
-              <a href={href("/about")}>{d.nav.about}</a>
+              <a href="/about">{d.nav.about}</a>
               <LocaleSwitcher current={locale} />
             </div>
             <details className="mobile-nav">
@@ -59,7 +61,7 @@ export default function LocaleLayout({
                   </a>
                 ))}
                 <a href={href("/faq")}>{d.nav.faq}</a>
-                <a href={href("/about")}>{d.nav.about}</a>
+                <a href="/about">{d.nav.about}</a>
                 <a href={href("/report-abuse")}>{d.nav.report}</a>
                 <LocaleSwitcher current={locale} />
               </div>

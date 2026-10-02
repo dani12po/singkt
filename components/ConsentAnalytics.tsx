@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getConsent } from "@/components/CookieConsent";
+import { getConsent } from "@/lib/consent";
 
 /**
  * Analytics only ever loads AFTER explicit consent ("accepted").

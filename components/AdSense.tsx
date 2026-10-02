@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getConsent } from "@/components/CookieConsent";
+import { getConsent } from "@/lib/consent";
 
 const FALLBACK_CLIENT = "ca-pub-5613319962434210";
 
