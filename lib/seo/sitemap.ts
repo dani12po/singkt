@@ -24,6 +24,7 @@ function wrap(urls: string[]): string {
 export function rootSitemapXml(): string {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
+    urlEntry(`${SITE_URL}/`, today),
     ...ROOT_STATIC_ROUTES.map((r) => urlEntry(`${SITE_URL}${r}`, today)),
     ...LANDING_PAGES.map((p) => urlEntry(`${SITE_URL}${p.route}`, today)),
   ];
@@ -43,6 +44,7 @@ export function localeSitemapXml(locale: string): string {
     urlEntry(`${SITE_URL}/${locale}/faq`, today),
     urlEntry(`${SITE_URL}/${locale}/report-abuse`, today),
     urlEntry(`${SITE_URL}/${locale}/search`, today),
+    urlEntry(`${SITE_URL}/${locale}/sitemap`, today),
     urlEntry(`${SITE_URL}/${locale}/blog`, today),
     ...blogSlugsFor(locale).map((s) => urlEntry(`${SITE_URL}/${locale}/blog/${s}`, today)),
   ];

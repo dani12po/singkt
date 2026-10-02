@@ -20,6 +20,7 @@ export const KEYWORDS_BY_ROUTE: Record<string, string[]> = {
   "/blog": ["tutorial download video", "cara download", "tips downloader"],
   "/faq": ["faq singkat", "bantuan downloader", "pertanyaan umum"],
   "/search": ["cari tool singkat"],
+  "/sitemap": ["peta situs singkat", "sitemap singkat", "daftar halaman singkat"],
 };
 
 export interface PageMetaInput {

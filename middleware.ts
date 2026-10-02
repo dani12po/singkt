@@ -38,6 +38,7 @@ const LEGACY = new Set([
   "faq",
   "report-abuse",
   "search",
+  "sitemap",
   "blog",
 ]);
 

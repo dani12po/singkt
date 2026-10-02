@@ -29,6 +29,7 @@ export const RESERVED_ROUTES = new Set([
   "faq",
   "blog",
   "search",
+  "sitemap",
   "rss",
   "og-image",
   "downloader",
