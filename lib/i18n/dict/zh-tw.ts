@@ -2,6 +2,7 @@ import type { Dict } from "@/lib/i18n/dict";
 
 export const zhtw: Dict = {
   nav: { tools: "工具", faq: "常見問題", about: "關於", report: "檢舉" },
+  toolGroups: { download: "下載", social: "社交", url: "網址" },
   home: {
     brand: "Singkt",
     line1: "一個連結。",

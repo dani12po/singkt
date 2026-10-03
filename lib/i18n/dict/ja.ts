@@ -2,6 +2,7 @@ import type { Dict } from "@/lib/i18n/dict";
 
 export const ja: Dict = {
   nav: { tools: "ツール", faq: "よくある質問", about: "概要", report: "報告" },
+  toolGroups: { download: "ダウンロード", social: "SNS", url: "URL" },
   home: {
     brand: "Singkt",
     line1: "1つのリンク。",

@@ -899,12 +899,14 @@ export async function extractWithYtDlp(
     if (extracted.stderr === "YTDLP_MISSING") {
       dlog("extract-fail", "yt-dlp binary not available (tried yt-dlp + python -m yt_dlp)");
       if (debug) debug.error = "yt-dlp missing";
+      const onVercel = Boolean(process.env.VERCEL);
       return {
         success: false,
         platform,
         code: "EXTRACTION_FAILED",
-        error:
-          "Video extractor is not installed on the server (yt-dlp missing). Admin: install with `pip install yt-dlp`, pastikan YTDLP_PATH benar, lalu cek /api/health.",
+        error: onVercel
+          ? "Video downloader tidak didukung di hosting serverless (Vercel). Deploy di VPS dengan Docker (image sudah include yt-dlp + ffmpeg), lalu cek /api/health."
+          : "Video extractor is not installed on the server (yt-dlp missing). Admin: install with `pip install yt-dlp`, pastikan YTDLP_PATH benar, lalu cek /api/health.",
       };
     }
     if (extracted.stderr === "TIMEOUT") {

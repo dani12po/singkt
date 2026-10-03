@@ -2,6 +2,7 @@ import type { Dict } from "@/lib/i18n/dict";
 
 export const ko: Dict = {
   nav: { tools: "도구", faq: "자주 묻는 질문", about: "소개", report: "신고" },
+  toolGroups: { download: "다운로드", social: "소셜", url: "URL" },
   home: {
     brand: "Singkt",
     line1: "하나의 링크.",

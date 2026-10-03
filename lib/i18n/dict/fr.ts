@@ -2,6 +2,7 @@ import type { Dict } from "@/lib/i18n/dict";
 
 export const fr: Dict = {
   nav: { tools: "Outils", faq: "FAQ", about: "À propos", report: "Signaler" },
+  toolGroups: { download: "Téléchargement", social: "Sociaux", url: "URL" },
   home: {
     brand: "Singkt",
     line1: "Un lien.",

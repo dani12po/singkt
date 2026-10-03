@@ -21,6 +21,7 @@ export interface ToolStrings {
 
 export interface Dict {
   nav: { tools: string; faq: string; about: string; report: string };
+  toolGroups: { download: string; social: string; url: string };
   home: {
     brand: string;
     line1: string;

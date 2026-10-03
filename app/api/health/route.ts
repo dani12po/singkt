@@ -17,8 +17,15 @@ export async function GET() {
       .catch(() => ({ ok: false })),
   ]);
   const ok = ytdlp.ok && ffmpeg.ok && db.ok;
+  const runtime = {
+    vercel: Boolean(process.env.VERCEL),
+    supported: !process.env.VERCEL,
+    note: process.env.VERCEL
+      ? "Serverless (Vercel) tidak didukung: butuh VPS + Docker (yt-dlp + ffmpeg). Lihat Dockerfile."
+      : undefined,
+  };
   return NextResponse.json(
-    { ok, ytdlp, ffmpeg, db, time: new Date().toISOString() },
+    { ok, ytdlp, ffmpeg, db, runtime, time: new Date().toISOString() },
     { status: ok ? 200 : 503 }
   );
 }
