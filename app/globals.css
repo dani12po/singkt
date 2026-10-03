@@ -13,7 +13,6 @@
   /* Global layout system — ONE shell width shared by header + body + footer. */
   --shell-max: 1200px;
   --shell-pad: 20px;
-  --rail-width: 200px;
   --header-h: 64px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.1);
@@ -39,35 +38,9 @@ body {
   border-radius: 6px;
 }
 
-/* ---- Global page architecture: main content + collapsible ad rails ---- */
-.content-layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
-.content-main { min-width: 0; }
-.rail { min-width: 0; }
-@media (min-width: 1100px) {
-  .content-layout:has(> .rail-left):has(> .rail-right) {
-    grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--rail-width);
-  }
-  .content-layout:has(> .rail-left):not(:has(> .rail-right)) {
-    grid-template-columns: var(--rail-width) minmax(0, 1fr);
-  }
-  .content-layout:not(:has(> .rail-left)):has(> .rail-right) {
-    grid-template-columns: minmax(0, 1fr) var(--rail-width);
-  }
-  .rail { position: sticky; top: calc(var(--header-h) + 20px); align-self: start; }
-}
-.ad-box {
-  min-height: 250px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-.ad-leaderboard {
-  min-height: 90px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin: 20px 0 0;
-}
+/* Real AdSense units only take space when filled (see AdSlot).
+   No rails, no placeholders, no reserved space anywhere. */
+.ad-unit { margin: 24px 0; }
 
 /* ---- Professional sticky header (shares .container with body) ---- */
 .site-header {
@@ -399,11 +372,18 @@ details.advanced summary { cursor: pointer; }
 .breadcrumb { font-size: 13px; color: var(--muted); margin: 20px 0 0; }
 .breadcrumb a { color: var(--muted); }
 .tool-hero { padding-top: 32px; }
-/* Tools grid: fluid columns from available width, consistent card height. */
+/* Tools grid: 1 col mobile, 2 tablet, 3 desktop. Explicit columns —
+   no fluid auto-fill that squeezes cards when side content appears. */
 .tool-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+}
+@media (min-width: 620px) {
+  .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .tool-card {
   display: flex;
@@ -462,7 +442,6 @@ details.advanced summary { cursor: pointer; }
 [dir="rtl"] input[type="url"],
 [dir="rtl"] input[inputmode="url"] { text-align: left; direction: ltr; }
 [dir="rtl"] .header-inner,
-[dir="rtl"] .content-layout,
 [dir="rtl"] .mobile-menu,
 [dir="rtl"] .tools-menu,
 [dir="rtl"] .lang-menu { direction: rtl; }
