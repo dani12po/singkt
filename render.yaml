@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: singkat
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: singkat-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: DATABASE_URL
+        value: file:/app/data/prod.db
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: RATE_LIMIT_MAX
+        value: "10"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "600000"
+      - key: RATE_LIMIT_MEDIA_MAX
+        value: "60"
+      - key: RATE_LIMIT_MEDIA_WINDOW_MS
+        value: "600000"
+      - key: APP_NAME
+        value: Singkt
+      # Set nilai berikut di dashboard Render (jangan simpan di sini):
+      # APP_URL, ADMIN_TOKEN, REWARD_SECRET,
+      # TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY,
+      # SAFE_BROWSING_API_KEY
