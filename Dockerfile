@@ -12,9 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 COPY . .
 RUN npx prisma generate && npm run build
+RUN npm prune --production
 
 ENV NODE_ENV=production
 ENV PORT=3000
